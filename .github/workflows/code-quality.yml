@@ -1,0 +1,36 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    
+    - name: Install dotnet-format
+      run: dotnet tool install -g dotnet-format
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Check code format
+      run: dotnet format --verify-no-changes --verbosity diagnostic
+    
+    - name: Run StyleCop
+      run: |
+        dotnet add src/WendoverHOA.Domain/WendoverHOA.Domain.csproj package StyleCop.Analyzers
+        dotnet add src/WendoverHOA.Application/WendoverHOA.Application.csproj package StyleCop.Analyzers
+        dotnet add src/WendoverHOA.Infrastructure/WendoverHOA.Infrastructure.csproj package StyleCop.Analyzers
+        dotnet add src/WendoverHOA.Web/WendoverHOA.Web.csproj package StyleCop.Analyzers
+        dotnet build --no-restore

@@ -1,0 +1,26 @@
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# @LaurenceRooks will be requested for review when someone 
+# opens a pull request.
+*       @LaurenceRooks
+
+# Domain layer ownership
+/src/WendoverHOA.Domain/        @LaurenceRooks
+
+# Application layer ownership
+/src/WendoverHOA.Application/   @LaurenceRooks
+
+# Infrastructure layer ownership
+/src/WendoverHOA.Infrastructure/ @LaurenceRooks
+
+# Web layer ownership
+/src/WendoverHOA.Web/           @LaurenceRooks
+
+# Test ownership
+/tests/                         @LaurenceRooks
+
+# GitHub Actions workflows
+/.github/workflows/             @LaurenceRooks
+
+# Documentation
+/docs/                          @LaurenceRooks

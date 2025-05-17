@@ -1,0 +1,45 @@
+name: Documentation Generation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**/*.cs'
+      - 'docs/**/*.md'
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    
+    - name: Install DocFX
+      run: dotnet tool install -g docfx
+    
+    - name: Create DocFX project
+      run: |
+        mkdir -p docfx
+        cd docfx
+        docfx init -q
+    
+    - name: Update DocFX configuration
+      run: |
+        sed -i 's/"src\/\*\*\/\*.csproj"/"src\/WendoverHOA.Domain\/WendoverHOA.Domain.csproj", "src\/WendoverHOA.Application\/WendoverHOA.Application.csproj", "src\/WendoverHOA.Infrastructure\/WendoverHOA.Infrastructure.csproj", "src\/WendoverHOA.Web\/WendoverHOA.Web.csproj"/g' docfx/docfx.json
+    
+    - name: Build documentation
+      run: |
+        cd docfx
+        docfx build
+    
+    - name: Deploy documentation to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docfx/_site

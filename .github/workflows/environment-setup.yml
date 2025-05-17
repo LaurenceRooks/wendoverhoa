@@ -1,0 +1,109 @@
+name: Environment Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to set up (development, staging, production)'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  setup-environment:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    
+    - name: Configure Environment Variables
+      run: |
+        echo "Setting up ${{ github.event.inputs.environment }} environment"
+        # This would be replaced with actual environment configuration
+        
+    - name: Create Environment Configuration
+      run: |
+        mkdir -p environments/${{ github.event.inputs.environment }}
+        echo "ASPNETCORE_ENVIRONMENT=${{ github.event.inputs.environment }}" > environments/${{ github.event.inputs.environment }}/.env
+        
+    - name: Generate appsettings.${{ github.event.inputs.environment }}.json
+      run: |
+        cat > src/WendoverHOA.Web/appsettings.${{ github.event.inputs.environment }}.json << EOF
+        {
+          "Logging": {
+            "LogLevel": {
+              "Default": "Information",
+              "Microsoft.AspNetCore": "Warning"
+            }
+          },
+          "ConnectionStrings": {
+            "DefaultConnection": "Server=localhost;Database=WendoverHOA_${{ github.event.inputs.environment }};Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
+          },
+          "Authentication": {
+            "JwtBearer": {
+              "SecurityKey": "${{ secrets.JWT_KEY || 'PLACEHOLDER_SECURITY_KEY' }}",
+              "Issuer": "WendoverHOA",
+              "Audience": "WendoverHOAUsers",
+              "ExpiryMinutes": 60
+            }
+          },
+          "ExternalProviders": {
+            "Microsoft": {
+              "Enabled": true,
+              "ClientId": "${{ secrets.MS_CLIENT_ID || 'PLACEHOLDER_CLIENT_ID' }}",
+              "ClientSecret": "${{ secrets.MS_CLIENT_SECRET || 'PLACEHOLDER_CLIENT_SECRET' }}"
+            },
+            "Google": {
+              "Enabled": true,
+              "ClientId": "${{ secrets.GOOGLE_CLIENT_ID || 'PLACEHOLDER_CLIENT_ID' }}",
+              "ClientSecret": "${{ secrets.GOOGLE_CLIENT_SECRET || 'PLACEHOLDER_CLIENT_SECRET' }}"
+            },
+            "Apple": {
+              "Enabled": true,
+              "ClientId": "${{ secrets.APPLE_CLIENT_ID || 'PLACEHOLDER_CLIENT_ID' }}",
+              "ClientSecret": "${{ secrets.APPLE_CLIENT_SECRET || 'PLACEHOLDER_CLIENT_SECRET' }}"
+            }
+          },
+          "Serilog": {
+            "MinimumLevel": {
+              "Default": "${{ github.event.inputs.environment == 'production' && 'Warning' || 'Information' }}",
+              "Override": {
+                "Microsoft": "${{ github.event.inputs.environment == 'production' && 'Error' || 'Warning' }}",
+                "System": "${{ github.event.inputs.environment == 'production' && 'Error' || 'Warning' }}"
+              }
+            },
+            "WriteTo": [
+              {
+                "Name": "Console"
+              },
+              {
+                "Name": "File",
+                "Args": {
+                  "path": "logs/wendoverhoa-.log",
+                  "rollingInterval": "Day"
+                }
+              }
+            ]
+          },
+          "AllowedHosts": "*",
+          "EnvironmentName": "${{ github.event.inputs.environment }}"
+        }
+        EOF
+        
+    - name: Upload Environment Configuration
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.event.inputs.environment }}-config
+        path: |
+          environments/${{ github.event.inputs.environment }}
+          src/WendoverHOA.Web/appsettings.${{ github.event.inputs.environment }}.json
