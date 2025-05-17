@@ -63,6 +63,8 @@ jobs:
       
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:csharp"
       
   dependency-review:
     runs-on: ubuntu-latest
@@ -78,7 +80,9 @@ jobs:
     needs: [build, security-scan]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: development
+    environment:
+      name: development
+      url: https://dev.wendoverhoa.org
     
     steps:
     - name: Download artifact

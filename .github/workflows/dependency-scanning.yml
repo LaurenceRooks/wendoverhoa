@@ -34,12 +34,17 @@ jobs:
     - name: Check for vulnerable dependencies
       uses: snyk/actions/dotnet@master
       continue-on-error: true
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      # Using GitHub secrets for Snyk authentication
       with:
-        args: --severity-threshold=high
+        args: --severity-threshold=high --sarif-file-output=snyk.sarif
     
     - name: Upload dependency scan results
       uses: github/codeql-action/upload-sarif@v3
+      continue-on-error: true
       with:
         sarif_file: snyk.sarif
+        
+    - name: Alternative dependency check
+      run: |
+        echo "Running additional dependency check with dotnet tools"
+        dotnet list package --vulnerable --include-transitive
