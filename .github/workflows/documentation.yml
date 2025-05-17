@@ -38,8 +38,9 @@ jobs:
         docfx build
     
     - name: Deploy documentation to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+      uses: JamesIves/github-pages-deploy-action@v4
       if: github.ref == 'refs/heads/main'
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docfx/_site
+        folder: ./docfx/_site
+        branch: gh-pages
+        clean: true
