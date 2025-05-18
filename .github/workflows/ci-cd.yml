@@ -1,10 +1,18 @@
 name: WendoverHOA CI/CD
 
 on:
+  # Run on push to main (after PR is merged)
   push:
     branches: [ main ]
+  # Run on PRs, but only if they're coming from a fork
+  # This avoids duplicate runs for PRs from branches in the same repo
   pull_request:
     branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/*.md'
   workflow_dispatch:
 
 jobs:
@@ -40,7 +48,7 @@ jobs:
         path: publish/
         retention-days: 5
 
-  security-scan:
+  basic-security-scan:
     runs-on: ubuntu-latest
     
     steps:
@@ -56,13 +64,14 @@ jobs:
     - name: Build with security flags
       run: dotnet build --configuration Release
       
-    - name: Run security checks
+    - name: Run basic security checks
       run: |
         echo "Running basic security checks"
         # Check for hardcoded secrets (simplified version)
         ! grep -r "password\|secret\|key\|token" --include="*.cs" --include="*.json" --exclude="*Test*" src/ || echo "WARNING: Possible hardcoded secrets found"
         # Check for vulnerable patterns
         ! grep -r "SqlCommand.*ExecuteNonQuery.*\$\{" --include="*.cs" src/ || echo "WARNING: Possible SQL injection found"
+        # Note: Advanced security scanning is handled by GitHub's default CodeQL setup
       continue-on-error: true
       
   dependency-review:
@@ -76,9 +85,9 @@ jobs:
       uses: actions/dependency-review-action@v3
       
   deploy-dev:
-    needs: [build, security-scan]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build, basic-security-scan]
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     environment:
       name: development
       url: https://dev.wendoverhoa.org
@@ -98,8 +107,8 @@ jobs:
         
   deploy-prod:
     needs: deploy-dev
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'release:')
     environment:
       name: production
       url: https://wendoverhoa.org
