@@ -1,11 +1,15 @@
 name: WendoverHOA CI/CD
 
 on:
-  # Run on push to main (after PR is merged)
+  # Only run on pushes to main (after PR is merged)
+  # This is for deployment steps only
   push:
     branches: [ main ]
-  # Run on PRs, but only if they're coming from a fork
-  # This avoids duplicate runs for PRs from branches in the same repo
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/*.md'
+  # Run build/test on PRs targeting main
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
@@ -76,6 +80,7 @@ jobs:
       
   dependency-review:
     runs-on: ubuntu-latest
+    # Only run on pull requests to avoid duplicate runs
     if: github.event_name == 'pull_request'
     
     steps:
@@ -87,7 +92,8 @@ jobs:
   deploy-dev:
     needs: [build, basic-security-scan]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # Only run on pushes to main (after PR is merged)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: development
       url: https://dev.wendoverhoa.org
@@ -108,7 +114,8 @@ jobs:
   deploy-prod:
     needs: deploy-dev
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'release:')
+    # Only run on pushes to main with release commit message (after PR is merged)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'release:')
     environment:
       name: production
       url: https://wendoverhoa.org
