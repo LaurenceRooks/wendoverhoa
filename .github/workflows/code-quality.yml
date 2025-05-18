@@ -1,10 +1,17 @@
 name: Code Quality
 
 on:
+  # Run on push to main (after PR is merged)
   push:
     branches: [ main ]
+  # Run on PRs, but only if they're coming from a fork
   pull_request:
     branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/*.md'
 
 jobs:
   code-quality:

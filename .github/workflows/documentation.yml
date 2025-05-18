@@ -1,11 +1,22 @@
 name: Documentation Generation
 
 on:
+  # Run on push to main (after PR is merged)
   push:
     branches: [ main ]
     paths:
-      - 'src/**/*.cs'
-      - 'docs/**/*.md'
+      - 'docs/**'
+      - '**/*.md'
+      - '**/*.cs'  # For XML comments in code
+  # Run on PRs that modify documentation
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'docs/**'
+      - '**/*.md'
+      - '**/*.cs'  # For XML comments in code
+  workflow_dispatch:
 
 jobs:
   generate-docs:
