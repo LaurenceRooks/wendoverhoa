@@ -1,17 +1,17 @@
 name: Documentation Generation
 
 on:
-  # Run on push to main (after PR is merged)
-  push:
+  # Only run on pull requests for validation
+  pull_request:
     branches: [ main ]
+    types: [opened, synchronize, reopened]
     paths:
       - 'docs/**'
       - '**/*.md'
       - '**/*.cs'  # For XML comments in code
-  # Run on PRs that modify documentation
-  pull_request:
+  # Only run on pushes to main for deployment
+  push:
     branches: [ main ]
-    types: [opened, synchronize, reopened]
     paths:
       - 'docs/**'
       - '**/*.md'

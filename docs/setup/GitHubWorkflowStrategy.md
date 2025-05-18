@@ -30,18 +30,23 @@ To avoid duplicate workflow runs and optimize our CI/CD pipeline, we've configur
 
 ### Trigger Configuration
 
-1. **Push to Main**:
-   - Workflows run when changes are pushed to `main` (typically after a PR is merged).
-   - This ensures that the final state of the code is validated after merging.
+To avoid duplicate workflow runs, we've optimized our triggers as follows:
 
-2. **Pull Requests**:
-   - Workflows run on pull requests targeting `main`.
+1. **Pull Request Workflows**:
+   - Code quality, PR validation, and testing workflows run ONLY on pull requests.
+   - These workflows validate code changes before they're merged to `main`.
    - We've added `types: [opened, synchronize, reopened]` to specify exactly when the workflow should run.
    - We've added `paths-ignore` to skip workflow runs for documentation-only changes when appropriate.
 
-3. **Documentation Changes**:
-   - Documentation-specific workflows only run when documentation files are changed.
-   - This prevents unnecessary builds for documentation-only changes.
+2. **Deployment Workflows**:
+   - Deployment steps run ONLY on pushes to `main` (after a PR is merged).
+   - This ensures deployment only happens after code has been validated and merged.
+   - We use conditions like `if: github.event_name == 'push' && github.ref == 'refs/heads/main'` to enforce this.
+
+3. **Documentation Workflows**:
+   - Documentation validation runs on pull requests that modify documentation files.
+   - Documentation deployment runs on pushes to `main` that modify documentation files.
+   - This prevents unnecessary builds for non-documentation changes.
 
 ### Workflow Efficiency
 

@@ -1,10 +1,7 @@
 name: Code Quality
 
 on:
-  # Run on push to main (after PR is merged)
-  push:
-    branches: [ main ]
-  # Run on PRs, but only if they're coming from a fork
+  # Only run on pull requests to avoid duplicate runs
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]

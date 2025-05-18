@@ -1,6 +1,7 @@
 name: Pull Request Validation
 
 on:
+  # Only run on pull requests to avoid duplicate runs
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
