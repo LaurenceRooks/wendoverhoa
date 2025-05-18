@@ -1,0 +1,14 @@
+name: "CodeQL Config"
+
+queries:
+  - uses: security-and-quality
+
+paths:
+  - src
+paths-ignore:
+  - '**/obj/**'
+  - '**/bin/**'
+  - '**/wwwroot/lib/**'
+  - '**/node_modules/**'
+  - '**/*.Test*/**'
+  - '**/tests/**'
