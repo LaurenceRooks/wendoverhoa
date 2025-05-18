@@ -6,19 +6,26 @@ This document outlines the security setup for the Wendover HOA project, includin
 
 ### CodeQL Analysis
 
-The project uses GitHub's CodeQL for static code analysis to identify potential security vulnerabilities. We've configured CodeQL in two ways:
+The project uses GitHub's default CodeQL setup for static code analysis to identify potential security vulnerabilities. This is automatically configured through GitHub's repository settings and doesn't require any custom workflow files.
 
-1. **Default GitHub CodeQL Setup** (Primary)
-   - Configured in `.github/workflows/codeql.yml`
-   - Runs on push to main, pull requests to main, and weekly schedule
-   - Uses the configuration from `.github/codeql-config.yml`
-   - Includes security and quality queries
-   - Excludes test files, generated files, and third-party libraries
+Benefits of using the default setup:
 
-2. **Standalone CodeQL Analysis** (Supplementary)
-   - Configured in `.github/workflows/codeql-analysis.yml`
-   - Runs only on a weekly schedule to avoid conflicts with the default setup
-   - Provides additional security checks
+1. **Automatic Updates**: GitHub automatically keeps the CodeQL analysis engine updated with the latest security queries and fixes.
+
+2. **Seamless Integration**: Results are directly integrated into GitHub's security tab and pull request checks.
+
+3. **Optimized Performance**: The default setup is optimized for GitHub's infrastructure, resulting in faster analysis times.
+
+4. **No Configuration Needed**: GitHub automatically detects the languages in your repository and applies the appropriate analysis.
+
+The default CodeQL setup scans for:
+- Security vulnerabilities
+- Logic errors
+- Data flow problems
+- Resource leaks
+- API usage errors
+
+We've configured our CodeQL setup in the GitHub repository settings under "Code security and analysis" to use the default configuration.
 
 ### Basic Security Checks
 

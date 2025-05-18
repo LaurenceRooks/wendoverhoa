@@ -57,6 +57,11 @@ To avoid duplicate workflow runs and optimize our CI/CD pipeline, we've configur
    - We use caching for dependencies to speed up workflow execution.
    - This reduces build times and resource usage.
 
+4. **Security Scanning Integration**:
+   - We rely entirely on GitHub's default CodeQL setup for security scanning.
+   - We've removed custom CodeQL workflows to avoid conflicts.
+   - This ensures seamless integration with GitHub's security features.
+
 ## Best Practices
 
 1. **Always Create Pull Requests**:
