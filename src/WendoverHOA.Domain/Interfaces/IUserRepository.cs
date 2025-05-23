@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using WendoverHOA.Domain.Entities;
 using WendoverHOA.Domain.Enums;
 
@@ -6,7 +7,7 @@ namespace WendoverHOA.Domain.Interfaces;
 /// <summary>
 /// Repository interface for user-related operations
 /// </summary>
-public interface IUserRepository : IRepository<ApplicationUser>
+public interface IUserRepository
 {
     /// <summary>
     /// Gets a user by their username
@@ -49,4 +50,66 @@ public interface IUserRepository : IRepository<ApplicationUser>
     /// <param name="email">The email address to check</param>
     /// <returns>True if the email is registered, otherwise false</returns>
     Task<bool> IsEmailRegisteredAsync(string email);
+    
+    /// <summary>
+    /// Gets an entity by its unique identifier
+    /// </summary>
+    /// <param name="id">The unique identifier</param>
+    /// <returns>The entity if found, otherwise null</returns>
+    Task<ApplicationUser?> GetByIdAsync(int id);
+    
+    /// <summary>
+    /// Gets all entities
+    /// </summary>
+    /// <returns>A collection of all entities</returns>
+    Task<IReadOnlyList<ApplicationUser>> GetAllAsync();
+    
+    /// <summary>
+    /// Finds entities based on a predicate
+    /// </summary>
+    /// <param name="predicate">The filter expression</param>
+    /// <returns>A collection of matching entities</returns>
+    Task<IReadOnlyList<ApplicationUser>> FindAsync(Expression<Func<ApplicationUser, bool>> predicate);
+    
+    /// <summary>
+    /// Adds a new entity
+    /// </summary>
+    /// <param name="entity">The entity to add</param>
+    /// <returns>The added entity</returns>
+    Task<ApplicationUser> AddAsync(ApplicationUser entity);
+    
+    /// <summary>
+    /// Updates an existing entity
+    /// </summary>
+    /// <param name="entity">The entity to update</param>
+    /// <returns>The updated entity</returns>
+    Task<ApplicationUser> UpdateAsync(ApplicationUser entity);
+    
+    /// <summary>
+    /// Deletes an entity
+    /// </summary>
+    /// <param name="entity">The entity to delete</param>
+    /// <returns>True if deletion was successful, otherwise false</returns>
+    Task<bool> DeleteAsync(ApplicationUser entity);
+    
+    /// <summary>
+    /// Deletes an entity by its unique identifier
+    /// </summary>
+    /// <param name="id">The unique identifier</param>
+    /// <returns>True if deletion was successful, otherwise false</returns>
+    Task<bool> DeleteByIdAsync(int id);
+    
+    /// <summary>
+    /// Checks if any entity matches the specified predicate
+    /// </summary>
+    /// <param name="predicate">The filter expression</param>
+    /// <returns>True if any entity matches, otherwise false</returns>
+    Task<bool> ExistsAsync(Expression<Func<ApplicationUser, bool>> predicate);
+    
+    /// <summary>
+    /// Counts entities based on an optional predicate
+    /// </summary>
+    /// <param name="predicate">The optional filter expression</param>
+    /// <returns>The count of matching entities</returns>
+    Task<int> CountAsync(Expression<Func<ApplicationUser, bool>>? predicate = null);
 }
