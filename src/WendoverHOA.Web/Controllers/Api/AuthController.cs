@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using WendoverHOA.Application.Common.Security;
 using WendoverHOA.Infrastructure.Identity;
 
 namespace WendoverHOA.Web.Controllers.Api
@@ -42,12 +43,18 @@ namespace WendoverHOA.Web.Controllers.Api
                 return BadRequest(ModelState);
             }
 
+            // Sanitize user input before passing to service
+            var sanitizedEmail = InputSanitizer.SanitizeEmail(request.Email);
+            var sanitizedUsername = InputSanitizer.SanitizeUsername(request.Username);
+            var sanitizedFirstName = InputSanitizer.SanitizeForXss(request.FirstName);
+            var sanitizedLastName = InputSanitizer.SanitizeForXss(request.LastName);
+            
             var result = await _identityService.RegisterUserAsync(
-                request.Email,
-                request.Username,
+                sanitizedEmail,
+                sanitizedUsername,
                 request.Password,
-                request.FirstName,
-                request.LastName);
+                sanitizedFirstName,
+                sanitizedLastName);
 
             if (!result.Succeeded)
             {
@@ -58,9 +65,9 @@ namespace WendoverHOA.Web.Controllers.Api
                 return BadRequest(ModelState);
             }
 
-            _logger.LogInformation("User {Username} registered successfully", request.Username);
+            _logger.LogInformation("User {Username} registered successfully", InputSanitizer.SanitizeForLogging(sanitizedUsername));
 
-            return CreatedAtAction(nameof(Register), new { username = request.Username });
+            return CreatedAtAction(nameof(Register), new { username = sanitizedUsername });
         }
 
         /// <summary>
@@ -81,15 +88,18 @@ namespace WendoverHOA.Web.Controllers.Api
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
             var userAgent = Request.Headers["User-Agent"].ToString();
 
+            // Sanitize user input before passing to service
+            var sanitizedUsernameOrEmail = InputSanitizer.SanitizeUsernameOrEmail(request.UsernameOrEmail);
+            
             var result = await _identityService.AuthenticateAsync(
-                request.UsernameOrEmail,
+                sanitizedUsernameOrEmail,
                 request.Password,
                 ipAddress,
                 userAgent);
 
             if (!result.Succeeded)
             {
-                _logger.LogWarning("Failed login attempt for user {Username}", request.UsernameOrEmail);
+                _logger.LogWarning("Failed login attempt for user {Username}", InputSanitizer.SanitizeForLogging(sanitizedUsernameOrEmail));
                 return Unauthorized(new { message = "Invalid credentials" });
             }
 
@@ -98,7 +108,7 @@ namespace WendoverHOA.Web.Controllers.Api
                 ipAddress,
                 userAgent);
 
-            _logger.LogInformation("User {Username} logged in successfully", request.UsernameOrEmail);
+            _logger.LogInformation("User {Username} logged in successfully", InputSanitizer.SanitizeForLogging(sanitizedUsernameOrEmail));
 
             // Set refresh token in an HTTP-only cookie
             SetRefreshTokenCookie(refreshToken);
@@ -148,7 +158,7 @@ namespace WendoverHOA.Web.Controllers.Api
                 return Unauthorized(new { message = result.Errors.FirstOrDefault() ?? "Invalid refresh token" });
             }
 
-            _logger.LogInformation("Tokens refreshed for user ID {UserId}", userId);
+            _logger.LogInformation("Tokens refreshed for user ID {UserId}", InputSanitizer.SanitizeForLogging(userId.ToString()));
 
             // Set new refresh token in an HTTP-only cookie
             SetRefreshTokenCookie(result.RefreshToken!);
@@ -172,7 +182,7 @@ namespace WendoverHOA.Web.Controllers.Api
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
             {
                 await _identityService.LogoutAsync(userId, refreshToken);
-                _logger.LogInformation("User ID {UserId} logged out successfully", userId);
+                _logger.LogInformation("User ID {UserId} logged out successfully", InputSanitizer.SanitizeForLogging(userId.ToString()));
             }
 
             // Remove the refresh token cookie
@@ -207,36 +217,43 @@ namespace WendoverHOA.Web.Controllers.Api
         /// <summary>
         /// Gets or sets the email
         /// </summary>
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", ErrorMessage = "Invalid email format")]
+        [StringLength(100, ErrorMessage = "Email must be at most {1} characters")]
         public string Email { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the username
         /// </summary>
-        [Required]
-        [StringLength(100, MinimumLength = 3)]
+        [Required(ErrorMessage = "Username is required")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "Username must be between {2} and {1} characters")]
+        [RegularExpression(@"^[a-zA-Z0-9._]+$", ErrorMessage = "Username can only contain letters, numbers, periods, and underscores")]
         public string Username { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the password
         /// </summary>
-        [Required]
-        [StringLength(100, MinimumLength = 6)]
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least {2} characters")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", 
+            ErrorMessage = "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character")]
         public string Password { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the first name
         /// </summary>
-        [Required]
-        [StringLength(100)]
+        [Required(ErrorMessage = "First name is required")]
+        [StringLength(100, ErrorMessage = "First name must be at most {1} characters")]
+        [RegularExpression(@"^[a-zA-Z\s-']+$", ErrorMessage = "First name can only contain letters, spaces, hyphens, and apostrophes")]
         public string FirstName { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the last name
         /// </summary>
-        [Required]
-        [StringLength(100)]
+        [Required(ErrorMessage = "Last name is required")]
+        [StringLength(100, ErrorMessage = "Last name must be at most {1} characters")]
+        [RegularExpression(@"^[a-zA-Z\s-']+$", ErrorMessage = "Last name can only contain letters, spaces, hyphens, and apostrophes")]
         public string LastName { get; set; } = string.Empty;
     }
 
@@ -248,13 +265,15 @@ namespace WendoverHOA.Web.Controllers.Api
         /// <summary>
         /// Gets or sets the username or email
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "Username or email is required")]
+        [StringLength(100, ErrorMessage = "Username or email must be at most {1} characters")]
         public string UsernameOrEmail { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the password
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least {2} characters")]
         public string Password { get; set; } = string.Empty;
     }
 
