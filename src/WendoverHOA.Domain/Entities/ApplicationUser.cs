@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using WendoverHOA.Domain.Common;
 using WendoverHOA.Domain.Enums;
 using WendoverHOA.Domain.ValueObjects;
@@ -7,23 +8,8 @@ namespace WendoverHOA.Domain.Entities;
 /// <summary>
 /// Represents a user in the Wendover HOA application
 /// </summary>
-public class ApplicationUser : BaseEntity
+public class ApplicationUser : IdentityUser<int>
 {
-    /// <summary>
-    /// Username for login purposes
-    /// </summary>
-    public string UserName { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// User's email address
-    /// </summary>
-    public string Email { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// Indicates if the email has been confirmed
-    /// </summary>
-    public bool EmailConfirmed { get; set; }
-    
     /// <summary>
     /// User's first name
     /// </summary>
@@ -35,34 +21,19 @@ public class ApplicationUser : BaseEntity
     public string LastName { get; set; } = string.Empty;
     
     /// <summary>
-    /// User's phone number
-    /// </summary>
-    public string PhoneNumber { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// Indicates if the phone number has been confirmed
-    /// </summary>
-    public bool PhoneNumberConfirmed { get; set; }
-    
-    /// <summary>
-    /// Indicates if two-factor authentication is enabled for this user
-    /// </summary>
-    public bool TwoFactorEnabled { get; set; }
-    
-    /// <summary>
     /// Date when the user account was locked out, if applicable
     /// </summary>
-    public DateTime? LockoutEnd { get; set; }
+    public new DateTime? LockoutEnd { get; set; }
     
     /// <summary>
-    /// Indicates if the user can be locked out
+    /// Indicates if the user account can be locked out
     /// </summary>
-    public bool LockoutEnabled { get; set; }
+    public new bool LockoutEnabled { get; set; }
     
     /// <summary>
     /// Number of failed access attempts
     /// </summary>
-    public int AccessFailedCount { get; set; }
+    public new int AccessFailedCount { get; set; }
     
     /// <summary>
     /// Collection of user roles
