@@ -8,15 +8,15 @@ This document outlines the development roadmap for the Wendover HOA application,
 
 #### Week 1: Identity Framework Setup
 
-1. **Domain Layer**
-   - Define user-related domain entities and interfaces
-   - Implement role-based permission system
+1. **Domain Layer** ✅
+   - [x] Define user-related domain entities and interfaces
+   - [x] Implement role-based permission system
 
-2. **Infrastructure Layer**
-   - Configure ASP.NET Core Identity with Entity Framework
-   - Implement JWT authentication service
-   - Create database migrations for identity tables
-   - Implement refresh token mechanism
+2. **Infrastructure Layer** ✅
+   - [x] Configure ASP.NET Core Identity with Entity Framework
+   - [x] Implement JWT authentication service
+   - [x] Create database migrations for identity tables
+   - [x] Implement refresh token mechanism
 
 3. **Application Layer**
    - Create authentication commands and queries using MediatR
