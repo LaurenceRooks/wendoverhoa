@@ -65,7 +65,7 @@ namespace WendoverHOA.Web.Controllers.Api
                 return BadRequest(ModelState);
             }
 
-            _logger.LogInformation("User {Username} registered successfully", InputSanitizer.SanitizeForLogging(sanitizedUsername));
+            _logger.LogInformation("User {Username} registered successfully", InputSanitizer.AnonymizeUserIdentifier(sanitizedUsername));
 
             return CreatedAtAction(nameof(Register), new { username = sanitizedUsername });
         }
@@ -99,7 +99,7 @@ namespace WendoverHOA.Web.Controllers.Api
 
             if (!result.Succeeded)
             {
-                _logger.LogWarning("Failed login attempt for user {Username}", InputSanitizer.SanitizeForLogging(sanitizedUsernameOrEmail));
+                _logger.LogWarning("Failed login attempt for user {Username}", InputSanitizer.AnonymizeUserIdentifier(sanitizedUsernameOrEmail));
                 return Unauthorized(new { message = "Invalid credentials" });
             }
 
@@ -108,7 +108,7 @@ namespace WendoverHOA.Web.Controllers.Api
                 ipAddress,
                 userAgent);
 
-            _logger.LogInformation("User {Username} logged in successfully", InputSanitizer.SanitizeForLogging(sanitizedUsernameOrEmail));
+            _logger.LogInformation("User {Username} logged in successfully", InputSanitizer.AnonymizeUserIdentifier(sanitizedUsernameOrEmail));
 
             // Set refresh token in an HTTP-only cookie
             SetRefreshTokenCookie(refreshToken);
@@ -158,7 +158,7 @@ namespace WendoverHOA.Web.Controllers.Api
                 return Unauthorized(new { message = result.Errors.FirstOrDefault() ?? "Invalid refresh token" });
             }
 
-            _logger.LogInformation("Tokens refreshed for user ID {UserId}", InputSanitizer.SanitizeForLogging(userId.ToString()));
+            _logger.LogInformation("Tokens refreshed for user ID {UserId}", InputSanitizer.AnonymizeUserIdentifier(userId.ToString()));
 
             // Set new refresh token in an HTTP-only cookie
             SetRefreshTokenCookie(result.RefreshToken!);
@@ -182,7 +182,7 @@ namespace WendoverHOA.Web.Controllers.Api
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
             {
                 await _identityService.LogoutAsync(userId, refreshToken);
-                _logger.LogInformation("User ID {UserId} logged out successfully", InputSanitizer.SanitizeForLogging(userId.ToString()));
+                _logger.LogInformation("User ID {UserId} logged out successfully", InputSanitizer.AnonymizeUserIdentifier(userId.ToString()));
             }
 
             // Remove the refresh token cookie

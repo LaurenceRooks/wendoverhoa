@@ -1,4 +1,6 @@
 using System;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace WendoverHOA.Application.Common.Security
@@ -57,6 +59,51 @@ namespace WendoverHOA.Application.Common.Security
             }
             
             return sanitized;
+        }
+
+        /// <summary>
+        /// Anonymizes sensitive data for logging purposes
+        /// </summary>
+        /// <param name="input">The sensitive data to anonymize</param>
+        /// <returns>An anonymized version of the input that's safe for logging</returns>
+        public static string AnonymizeForLogging(string? input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
+
+            // Create a hash of the input
+            using var sha256 = SHA256.Create();
+            var inputBytes = Encoding.UTF8.GetBytes(input);
+            var hashBytes = sha256.ComputeHash(inputBytes);
+            
+            // Convert to Base64 string and take first 8 characters
+            var hash = Convert.ToBase64String(hashBytes);
+            var shortHash = hash.Substring(0, Math.Min(8, hash.Length));
+            
+            // For emails, preserve the domain part for troubleshooting
+            if (input.Contains('@'))
+            {
+                var parts = input.Split('@');
+                if (parts.Length == 2)
+                {
+                    return $"[REDACTED-{shortHash}]@{parts[1]}";
+                }
+            }
+            
+            // For usernames or other identifiers, just return the hash
+            return $"[REDACTED-{shortHash}]";
+        }
+
+        /// <summary>
+        /// Anonymizes a user identifier (username, email, or ID) for logging purposes
+        /// </summary>
+        /// <param name="input">The user identifier to anonymize</param>
+        /// <returns>An anonymized version of the user identifier that's safe for logging</returns>
+        public static string AnonymizeUserIdentifier(string? input)
+        {
+            return AnonymizeForLogging(input);
         }
 
         /// <summary>
